@@ -1,0 +1,66 @@
+global:
+  domain: readr.example.com
+  tlsSecret: readr-tls
+
+api:
+  image: readr-api
+  tag: latest
+  replicas: 2
+  port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    ENV: production
+    JWT_SECRET: "change-me-in-production"
+    JWT_REFRESH_SECRET: "change-me-refresh-in-production"
+
+frontend:
+  image: readr-frontend
+  tag: latest
+  replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+mongodb:
+  image: mongo
+  tag: "7"
+  storageSize: 20Gi
+  storageClass: standard
+
+minio:
+  image: minio/minio
+  tag: latest
+  storageSize: 50Gi
+  storageClass: standard
+  rootUser: minioadmin
+  rootPassword: minioadmin
+  bucket: readr
+
+redis:
+  image: redis
+  tag: 7-alpine
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"

@@ -1,0 +1,18 @@
+<div class="flex flex-col h-full bg-slate-950">
+
+  @if (loading) {
+    <div class="flex items-center justify-center flex-1">
+      <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  }
+
+  <!-- epub.js renders into this div -->
+  <div #viewer class="flex-1 bg-white rounded-none"></div>
+
+  <!-- Navigation -->
+  <div class="flex items-center justify-between px-6 py-3 border-t border-slate-700 bg-slate-900 shrink-0">
+    <button class="btn-ghost text-sm" (click)="prevPage()">← Previous</button>
+    <button class="btn-ghost text-sm" (click)="nextPage()">Next →</button>
+  </div>
+
+</div>

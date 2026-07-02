@@ -1,0 +1,98 @@
+<app-navbar />
+
+<main class="max-w-2xl mx-auto px-6 py-8 flex flex-col gap-6">
+
+  <h1 class="text-2xl font-bold text-white">Settings</h1>
+
+  <!-- Theme -->
+  <div class="card p-6">
+    <h2 class="text-base font-semibold text-white mb-1">Appearance</h2>
+    <p class="text-sm text-slate-400 mb-5">Choose how Readr looks.</p>
+
+    <div class="flex items-center gap-4">
+      <!-- Dark option -->
+      <button
+        class="flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors"
+        [class]="theme.theme() === 'dark'
+          ? 'border-brand-500 bg-brand-500/10'
+          : 'border-slate-700 hover:border-slate-500'"
+        (click)="theme.set('dark')"
+      >
+        <div class="w-full h-16 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center">
+          <div class="w-8 h-1.5 rounded bg-slate-600"></div>
+        </div>
+        <span class="text-sm font-medium" [class]="theme.theme() === 'dark' ? 'text-brand-400' : 'text-slate-400'">Dark</span>
+      </button>
+
+      <!-- Light option -->
+      <button
+        class="flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors"
+        [class]="theme.theme() === 'light'
+          ? 'border-brand-500 bg-brand-500/10'
+          : 'border-slate-700 hover:border-slate-500'"
+        (click)="theme.set('light')"
+      >
+        <div class="w-full h-16 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
+          <div class="w-8 h-1.5 rounded bg-slate-300"></div>
+        </div>
+        <span class="text-sm font-medium" [class]="theme.theme() === 'light' ? 'text-brand-400' : 'text-slate-400'">Light</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Change password -->
+  <div class="card p-6">
+    <h2 class="text-base font-semibold text-white mb-1">Change password</h2>
+    <p class="text-sm text-slate-400 mb-5">Use a strong password you don't use elsewhere.</p>
+
+    <form class="flex flex-col gap-4" (ngSubmit)="changePassword()">
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Current password</label>
+        <input
+          type="password"
+          class="input"
+          placeholder="••••••••"
+          [(ngModel)]="currentPassword"
+          name="current"
+          autocomplete="current-password"
+        />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">New password</label>
+        <input
+          type="password"
+          class="input"
+          placeholder="••••••••"
+          [(ngModel)]="newPassword"
+          name="new"
+          autocomplete="new-password"
+        />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Confirm new password</label>
+        <input
+          type="password"
+          class="input"
+          placeholder="••••••••"
+          [(ngModel)]="confirmPassword"
+          name="confirm"
+          autocomplete="new-password"
+        />
+      </div>
+
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="btn-primary flex items-center gap-2"
+          [disabled]="savingPassword() || !currentPassword || !newPassword || !confirmPassword"
+        >
+          @if (savingPassword()) { <app-spinner size="sm" /> }
+          Update password
+        </button>
+      </div>
+    </form>
+  </div>
+
+</main>
+
+<app-toast />

@@ -1,0 +1,105 @@
+@if (loading()) {
+  <div class="flex items-center justify-center min-h-screen bg-slate-900">
+    <app-spinner size="lg" />
+  </div>
+}
+
+@if (!loading() && book()) {
+  <div class="flex flex-col h-screen bg-slate-950 overflow-hidden">
+
+    <!-- Top toolbar -->
+    <header class="h-12 bg-slate-900 border-b border-slate-700/60 flex items-center px-4 gap-3 shrink-0 z-30">
+      <a routerLink="/library" class="text-slate-400 hover:text-white transition-colors">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-white truncate">{{ book()!.title }}</p>
+        <p class="text-xs text-slate-400 truncate">{{ book()!.author }}</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Page indicator (PDF/CBZ only) -->
+        @if (book()!.format !== 'epub') {
+          <span class="text-xs text-slate-400">Page {{ currentPage() }}</span>
+        }
+
+        <!-- Zoom controls (PDF/CBZ only) -->
+        @if (book()!.format !== 'epub') {
+          <div class="flex items-center gap-1">
+            <button class="btn-ghost px-2 py-1 text-sm" (click)="zoomOut()" title="Zoom out (Ctrl+Scroll)">−</button>
+            <span class="text-xs text-slate-400 w-12 text-center">{{ zoomPercent() }}%</span>
+            <button class="btn-ghost px-2 py-1 text-sm" (click)="zoomIn()" title="Zoom in (Ctrl+Scroll)">+</button>
+          </div>
+        }
+
+        <!-- Notes toggle (N key shortcut) -->
+        <button
+          class="p-2 rounded-lg transition-colors text-sm font-medium"
+          [class]="notesOpen() ? 'bg-brand-500 text-white' : 'btn-ghost'"
+          (click)="toggleNotes()"
+          title="Toggle notes (N)"
+        >
+          Notes
+        </button>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <div class="flex flex-1 overflow-hidden relative">
+
+      <!-- Viewer area -->
+      <div class="flex-1 overflow-hidden relative">
+
+        @if (book()!.format === 'pdf' || book()!.format === 'cbz') {
+          <app-pdf-viewer
+            [src]="streamUrl"
+            [initialPage]="currentPage()"
+            [highlights]="highlights()"
+            (pageChange)="onPageChange($event)"
+            (zoomPercentChange)="onZoomPercentChange($event)"
+            (textSelected)="onTextSelected($event)"
+          />
+        }
+
+        @if (book()!.format === 'epub') {
+          <app-epub-viewer
+            [src]="streamUrl"
+            [initialCFI]="currentCFI()"
+            [highlights]="highlights()"
+            (cfiChange)="onCFIChange($event)"
+            (textSelected)="onTextSelected($event)"
+          />
+        }
+
+      </div>
+
+      <!-- Notes panel (slides in from right) -->
+      @if (notesOpen()) {
+        <app-notes-panel
+          [book]="book()!"
+          [currentPage]="currentPage()"
+          [highlights]="highlights()"
+          (highlightUpdated)="onHighlightUpdated($event)"
+          (highlightDeleted)="onHighlightDeleted($event)"
+          (close)="notesOpen.set(false)"
+        />
+      }
+
+    </div>
+
+    <!-- Highlight toolbar (appears on text selection) -->
+    @if (toolbarPos()) {
+      <app-highlight-toolbar
+        [position]="toolbarPos()!"
+        (colorSelected)="onHighlightCreate($event)"
+        (dismiss)="clearSelection()"
+      />
+    }
+
+  </div>
+}
+
+<app-toast />

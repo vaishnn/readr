@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  namespace: readr
+spec:
+  serviceName: minio-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+        - name: minio
+          image: "{{ .Values.minio.image }}:{{ .Values.minio.tag }}"
+          command: ["minio", "server", "/data", "--console-address", ":9001"]
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              value: {{ .Values.minio.rootUser | quote }}
+            - name: MINIO_ROOT_PASSWORD
+              value: {{ .Values.minio.rootPassword | quote }}
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: minio-data
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: {{ .Values.minio.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.minio.storageSize }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-svc
+  namespace: readr
+spec:
+  selector:
+    app: minio
+  clusterIP: None
+  ports:
+    - name: api
+      port: 9000
+    - name: console
+      port: 9001

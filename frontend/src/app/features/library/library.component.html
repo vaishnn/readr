@@ -1,0 +1,102 @@
+<app-navbar />
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Library</h1>
+      <p class="text-slate-400 text-sm mt-0.5">{{ total() }} book{{ total() !== 1 ? 's' : '' }}</p>
+    </div>
+    <button class="btn-primary" (click)="showUpload.set(true)">
+      + Upload
+    </button>
+  </div>
+
+  <!-- Search + tag filters -->
+  <div class="flex flex-col gap-3 mb-6">
+    <input
+      type="text"
+      class="input max-w-md"
+      placeholder="Search by title, author or tag..."
+      [ngModel]="searchQuery"
+      (ngModelChange)="onSearch($event)"
+    />
+
+    @if (allTags.length) {
+      <div class="flex flex-wrap gap-2">
+        @for (tag of allTags; track tag) {
+          <button
+            class="px-3 py-1 rounded-full text-xs font-medium border transition-colors"
+            [class]="activeTag === tag
+              ? 'bg-brand-500 border-brand-500 text-white'
+              : 'border-slate-600 text-slate-400 hover:border-slate-400 hover:text-slate-200'"
+            (click)="filterByTag(tag)"
+          >
+            {{ tag }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex justify-center py-24">
+      <app-spinner size="lg" />
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && books().length === 0) {
+    <div class="text-center py-24 text-slate-500">
+      <svg class="w-12 h-12 mx-auto mb-4 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+      <p class="text-lg font-medium text-slate-400">No books yet</p>
+      <p class="text-sm mt-1">Upload a PDF, EPUB or CBZ to get started.</p>
+    </div>
+  }
+
+  <!-- Grid -->
+  @if (!loading() && books().length > 0) {
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      @for (book of books(); track book.id) {
+        <app-book-card
+          [book]="book"
+          (open)="openBook($event)"
+          (deleted)="onBookDeleted($event)"
+        />
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="flex justify-center items-center gap-2 mt-10">
+        <button
+          class="btn-secondary text-sm"
+          [disabled]="page === 1"
+          (click)="page = page - 1; loadBooks()"
+        >← Prev</button>
+        <span class="text-slate-400 text-sm">{{ page }} / {{ totalPages }}</span>
+        <button
+          class="btn-secondary text-sm"
+          [disabled]="page === totalPages"
+          (click)="page = page + 1; loadBooks()"
+        >Next →</button>
+      </div>
+    }
+  }
+
+</main>
+
+<!-- Upload modal -->
+@if (showUpload()) {
+  <app-upload-modal
+    (uploaded)="onUploaded($event)"
+    (close)="showUpload.set(false)"
+  />
+}
+
+<app-toast />

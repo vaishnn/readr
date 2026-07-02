@@ -1,0 +1,50 @@
+<div
+  class="group relative flex flex-col rounded-xl overflow-hidden border border-slate-700 hover:border-slate-500 bg-slate-800 cursor-pointer transition-all duration-150 hover:shadow-lg hover:shadow-black/30"
+  (click)="open.emit(book)"
+>
+  <!-- Cover -->
+  <div class="aspect-[2/3] overflow-hidden bg-slate-700 relative">
+    @if (book.coverUrl) {
+      <img [src]="book.coverUrl" [alt]="book.title" class="w-full h-full object-cover" />
+    } @else {
+      <!-- Gradient fallback when no cover image is available -->
+      <div class="w-full h-full flex items-end p-3"
+        [style.background]="'linear-gradient(135deg, #1e3a5f, #2d1b69)'">
+        <span class="text-white text-xs font-medium line-clamp-3 leading-tight">{{ book.title }}</span>
+      </div>
+    }
+
+    <!-- Format badge -->
+    <span class="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase" [class]="formatBadgeClass">
+      {{ book.format }}
+    </span>
+
+    <!-- 3-dot menu -->
+    <button
+      class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-slate-900/70 hover:bg-slate-900"
+      (click)="toggleMenu($event)"
+    >
+      <svg class="w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+      </svg>
+    </button>
+
+    @if (menuOpen()) {
+      <div class="absolute top-8 right-2 w-36 card shadow-xl py-1 z-10">
+        <button
+          class="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-700 transition-colors"
+          [disabled]="deleting()"
+          (click)="delete($event)"
+        >
+          {{ deleting() ? 'Deleting…' : 'Delete book' }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Info -->
+  <div class="p-3 flex flex-col gap-1 flex-1">
+    <p class="text-sm font-medium text-white line-clamp-2 leading-tight">{{ book.title }}</p>
+    <p class="text-xs text-slate-400 truncate">{{ book.author || 'Unknown author' }}</p>
+  </div>
+</div>

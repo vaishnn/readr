@@ -1,0 +1,39 @@
+{
+  "name": "readr",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "test": "ng test"
+  },
+  "dependencies": {
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "@tiptap/core": "^2.3.0",
+    "@tiptap/extension-highlight": "^2.3.0",
+    "@tiptap/extension-underline": "^2.3.0",
+    "@tiptap/starter-kit": "^2.3.0",
+    "epubjs": "^0.3.93",
+    "pdfjs-dist": "^3.11.174",
+    "ngx-extended-pdf-viewer": "^21.0.0",
+    "rxjs": "~7.8.0",
+    "zone.js": "~0.14.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.0",
+    "@angular/cli": "^17.3.0",
+    "@angular/compiler-cli": "^17.3.0",
+    "@types/node": "^20.0.0",
+    "@tailwindcss/typography": "^0.5.13",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "~5.4.0"
+  }
+}

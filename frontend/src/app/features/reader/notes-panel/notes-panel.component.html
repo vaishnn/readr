@@ -1,0 +1,85 @@
+<aside class="w-80 shrink-0 flex flex-col bg-slate-900 border-l border-slate-700 h-full z-20">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700 shrink-0">
+    <h2 class="text-sm font-semibold text-white">Notes</h2>
+    <button class="text-slate-400 hover:text-white transition-colors" (click)="close.emit()">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-slate-700 shrink-0">
+    @for (tab of tabs; track tab.id) {
+      <button
+        class="flex-1 py-2.5 text-xs font-medium transition-colors border-b-2"
+        [class]="activeTab() === tab.id
+          ? 'border-brand-500 text-brand-400'
+          : 'border-transparent text-slate-400 hover:text-slate-200'"
+        (click)="activeTab.set(tab.id)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Content -->
+  <div class="flex-1 overflow-y-auto p-4">
+
+    @if (loading()) {
+      <app-spinner size="sm" />
+    }
+
+    <!-- Book notes -->
+    @if (!loading() && activeTab() === 'book-notes') {
+      <div class="flex flex-col gap-3">
+        <p class="text-xs text-slate-500">Notes for the whole book</p>
+        <app-tiptap-editor
+          [initialContent]="bookNoteContent()"
+          (contentChange)="saveBookNote($event)"
+        />
+      </div>
+    }
+
+    <!-- Page notes -->
+    @if (!loading() && activeTab() === 'page-notes') {
+      <div class="flex flex-col gap-3">
+        <p class="text-xs text-slate-500">Notes for page {{ currentPage }}</p>
+        <app-tiptap-editor
+          [initialContent]="pageNoteContent()"
+          (contentChange)="savePageNote($event)"
+        />
+      </div>
+    }
+
+    <!-- Highlights -->
+    @if (activeTab() === 'highlights') {
+      @if (highlights.length === 0) {
+        <p class="text-xs text-slate-500 text-center py-8">No highlights on this page</p>
+      }
+      <div class="flex flex-col gap-3">
+        @for (h of highlights; track h.id) {
+          <div
+            class="rounded-lg border p-3 text-sm"
+            [class]="highlightColorClass(h.color)"
+          >
+            <p class="text-slate-200 leading-relaxed">{{ h.text }}</p>
+            @if (h.note) {
+              <p class="text-slate-400 text-xs mt-1 italic">{{ h.note }}</p>
+            }
+            <div class="flex justify-end mt-2">
+              <button
+                class="text-xs text-red-400 hover:text-red-300 transition-colors"
+                (click)="deleteHighlight(h.id)"
+              >Remove</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+
+</aside>

@@ -1,0 +1,13 @@
+<ngx-extended-pdf-viewer
+  [src]="src"
+  [httpHeaders]="authHeaders"
+  [page]="initialPage"
+  [(zoom)]="viewerZoom"
+  [textLayer]="true"
+  [showToolbar]="false"
+  [backgroundColor]="'#0f172a'"
+  height="calc(100vh - 3rem)"
+  (pageChange)="onPageChange($event)"
+  (currentZoomFactor)="onCurrentZoomFactor($event)"
+  (mouseup)="onMouseUp()"
+/>
