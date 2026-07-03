@@ -84,6 +84,13 @@ func (d *DB) Bookmarks() *mongo.Collection {
 	return d.db.Collection("bookmarks")
 }
 
+// FeatureFlags stores the enabled/disabled state of every product feature.
+// Values are seeded from environment variables on first startup and can only
+// be changed directly in MongoDB (e.g. via kubectl exec + mongosh).
+func (d *DB) FeatureFlags() *mongo.Collection {
+	return d.db.Collection("feature_flags")
+}
+
 func dbNameFromURI(uri string) string {
 	u, err := url.Parse(uri)
 	if err == nil {

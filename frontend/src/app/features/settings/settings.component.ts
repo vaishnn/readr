@@ -1,27 +1,23 @@
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../../shared/components/navbar.component';
 import { ToastComponent } from '../../shared/components/toast.component';
 import { SpinnerComponent } from '../../shared/components/spinner.component';
 import { ToastService } from '../../shared/components/toast.service';
 import { ApiService } from '../../core/services/api.service';
-import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, NavbarComponent, ToastComponent, SpinnerComponent],
+  imports: [FormsModule, ToastComponent, SpinnerComponent],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
-  // Password form
   currentPassword = '';
   newPassword = '';
   confirmPassword = '';
   savingPassword = signal(false);
 
   constructor(
-    public theme: ThemeService,
     private api: ApiService,
     private toast: ToastService,
   ) {}

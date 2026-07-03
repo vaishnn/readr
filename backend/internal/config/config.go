@@ -2,6 +2,18 @@ package config
 
 import "os"
 
+// FeatureFlags controls which optional features are active.
+// Each field maps to an environment variable (e.g. FEATURE_HIGHLIGHTS=true).
+// Defaults are conservative: only stable features are on by default.
+type FeatureFlags struct {
+	Collections   bool // FEATURE_COLLECTIONS   — book collections/shelves
+	PublicLibrary bool // FEATURE_PUBLIC_LIBRARY — unauthenticated browsing
+	ReadingStats  bool // FEATURE_READING_STATS  — reading time analytics
+	Highlights    bool // FEATURE_HIGHLIGHTS     — text highlighting & notes (default: on)
+	Registration  bool // FEATURE_REGISTRATION   — new user self-registration (default: on)
+	SocialSharing bool // FEATURE_SOCIAL_SHARING — shareable book links
+}
+
 // Config holds all runtime configuration loaded from environment variables.
 // In development, sensible defaults are used so the app runs without any setup.
 type Config struct {
@@ -30,6 +42,8 @@ type Config struct {
 	JWTSecret []byte
 	// JWTRefreshSecret signs long-lived refresh tokens (7 day expiry).
 	JWTRefreshSecret []byte
+
+	Features FeatureFlags
 }
 
 // Load reads configuration from environment variables, falling back to
@@ -48,6 +62,14 @@ func Load() *Config {
 		MinioPublicURL:   getEnv("MINIO_PUBLIC_URL", "http://localhost:9000"),
 		JWTSecret:        []byte(getEnv("JWT_SECRET", "dev-jwt-secret")),
 		JWTRefreshSecret: []byte(getEnv("JWT_REFRESH_SECRET", "dev-refresh-secret")),
+		Features: FeatureFlags{
+			Collections:   getEnv("FEATURE_COLLECTIONS", "false") == "true",
+			PublicLibrary: getEnv("FEATURE_PUBLIC_LIBRARY", "false") == "true",
+			ReadingStats:  getEnv("FEATURE_READING_STATS", "false") == "true",
+			Highlights:    getEnv("FEATURE_HIGHLIGHTS", "true") == "true",
+			Registration:  getEnv("FEATURE_REGISTRATION", "true") == "true",
+			SocialSharing: getEnv("FEATURE_SOCIAL_SHARING", "false") == "true",
+		},
 	}
 }
 

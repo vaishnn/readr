@@ -55,6 +55,18 @@ func main() {
 	collectionSvc := services.NewCollectionService(db)
 	bookmarkSvc := services.NewBookmarkService(db)
 	userSvc := services.NewUserService(db)
+	featureSvc := services.NewFeatureFlagService(db)
+
+	// Seed feature flags from env vars — only inserts, never overwrites existing.
+	// After first startup, flags must be changed directly in MongoDB.
+	seedCtx, seedCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer seedCancel()
+	if err := featureSvc.EnsureIndex(seedCtx); err != nil {
+		log.Fatalf("feature flags index: %v", err)
+	}
+	if err := featureSvc.Seed(seedCtx, cfg.Features); err != nil {
+		log.Fatalf("feature flags seed: %v", err)
+	}
 
 	// --- Handlers ---
 	authH := handlers.NewAuthHandler(authSvc)
@@ -63,6 +75,7 @@ func main() {
 	highlightH := handlers.NewHighlightHandler(highlightSvc)
 	noteH := handlers.NewNoteHandler(noteSvc)
 	collectionH := handlers.NewCollectionHandler(collectionSvc)
+	featuresH := handlers.NewFeaturesHandler(featureSvc)
 
 	// --- Router ---
 	r := chi.NewRouter()
@@ -76,6 +89,9 @@ func main() {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Public — no auth required
+		r.Get("/features", featuresH.Get)
+
 		// Public auth routes
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", authH.Register)

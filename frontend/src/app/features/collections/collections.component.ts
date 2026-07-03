@@ -4,14 +4,13 @@ import { Collection, Book } from '../../core/models';
 import { CollectionService } from '../../core/services/collection.service';
 import { BookService } from '../../core/services/book.service';
 import { ToastService } from '../../shared/components/toast.service';
-import { NavbarComponent } from '../../shared/components/navbar.component';
 import { SpinnerComponent } from '../../shared/components/spinner.component';
 import { ToastComponent } from '../../shared/components/toast.component';
 
 @Component({
   selector: 'app-collections',
   standalone: true,
-  imports: [FormsModule, NavbarComponent, SpinnerComponent, ToastComponent],
+  imports: [FormsModule, SpinnerComponent, ToastComponent],
   templateUrl: './collections.component.html',
 })
 export class CollectionsComponent implements OnInit {

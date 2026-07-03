@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, HostListener } from '@angular/core';
 import { Book } from '../../core/models';
 import { BookService } from '../../core/services/book.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../shared/components/toast.service';
 
 @Component({
@@ -16,7 +17,13 @@ export class BookCardComponent {
   menuOpen = signal(false);
   deleting = signal(false);
 
-  constructor(private bookService: BookService, private toast: ToastService) {}
+  isOwner = computed(() => this.auth.currentUser()?.id === this.book.ownerId);
+
+  constructor(
+    private bookService: BookService,
+    private auth: AuthService,
+    private toast: ToastService,
+  ) {}
 
   get formatBadgeClass(): string {
     return {
@@ -45,5 +52,10 @@ export class BookCardComponent {
   toggleMenu(event: MouseEvent): void {
     event.stopPropagation();
     this.menuOpen.update(v => !v);
+  }
+
+  @HostListener('document:click')
+  closeMenu(): void {
+    this.menuOpen.set(false);
   }
 }

@@ -1,10 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { BookService } from '../../core/services/book.service';
 import { Book } from '../../core/models';
-import { NavbarComponent } from '../../shared/components/navbar.component';
 import { SpinnerComponent } from '../../shared/components/spinner.component';
 import { ToastComponent } from '../../shared/components/toast.component';
 import { BookCardComponent } from './book-card.component';
@@ -13,19 +12,50 @@ import { UploadModalComponent } from './upload-modal.component';
 @Component({
   selector: 'app-library',
   standalone: true,
-  imports: [FormsModule, NavbarComponent, SpinnerComponent, ToastComponent, BookCardComponent, UploadModalComponent],
+  imports: [FormsModule, SpinnerComponent, ToastComponent, BookCardComponent, UploadModalComponent],
   templateUrl: './library.component.html',
+  host: { class: 'flex flex-col flex-1 min-h-0' },
 })
 export class LibraryComponent implements OnInit {
-  books = signal<Book[]>([]);
-  total = signal(0);
-  loading = signal(true);
+  books     = signal<Book[]>([]);
+  total     = signal(0);
+  loading   = signal(true);
   showUpload = signal(false);
 
   searchQuery = '';
-  activeTag = '';
-  page = 1;
+  activeTag   = '';
+  page        = 1;
   readonly limit = 24;
+
+  // Derived views
+  recentBooks  = computed(() => this.books().slice(0, 8));
+  sidebarBooks = computed(() => this.books().slice(0, 6));
+
+  topAuthors = computed(() => {
+    const map = new Map<string, number>();
+    for (const book of this.books()) {
+      if (book.author) map.set(book.author, (map.get(book.author) ?? 0) + 1);
+    }
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([name, count]) => ({ name, count, initial: name[0]?.toUpperCase() ?? '?' }));
+  });
+
+  tagCounts = computed(() => {
+    const map = new Map<string, number>();
+    for (const book of this.books()) {
+      for (const tag of book.tags) {
+        map.set(tag, (map.get(tag) ?? 0) + 1);
+      }
+    }
+    return map;
+  });
+
+  displayTags = computed(() => {
+    const tags = new Set(this.books().flatMap(b => b.tags));
+    return [...tags].slice(0, 6);
+  });
 
   private search$ = new Subject<string>();
 
@@ -33,7 +63,6 @@ export class LibraryComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadBooks();
-
     this.search$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(q => {
       this.searchQuery = q;
       this.page = 1;
@@ -59,7 +88,21 @@ export class LibraryComponent implements OnInit {
   }
 
   filterByTag(tag: string): void {
-    this.activeTag = this.activeTag === tag ? '' : tag;
+    this.activeTag = tag === '' || this.activeTag === tag ? '' : tag;
+    this.page = 1;
+    this.loadBooks();
+  }
+
+  filterByAuthor(author: string): void {
+    this.searchQuery = author;
+    this.activeTag = '';
+    this.page = 1;
+    this.search$.next(author);
+  }
+
+  clearFilters(): void {
+    this.activeTag = '';
+    this.searchQuery = '';
     this.page = 1;
     this.loadBooks();
   }
