@@ -1,6 +1,7 @@
 export interface UserSettings {
   theme: 'dark' | 'light';
   defaultView: 'grid' | 'list';
+  librarySidebarOpen: boolean;
 }
 
 export interface User {

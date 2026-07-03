@@ -12,6 +12,8 @@ type UserSettings struct {
 	Theme string `bson:"theme" json:"theme"`
 	// DefaultView controls library layout: "grid" or "list".
 	DefaultView string `bson:"default_view" json:"defaultView"`
+	// LibrarySidebarOpen controls whether the right sidebar is expanded in the library view.
+	LibrarySidebarOpen bool `bson:"library_sidebar_open" json:"librarySidebarOpen"`
 }
 
 // User represents an account in the system.

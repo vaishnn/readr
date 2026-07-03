@@ -3,7 +3,9 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { BookService } from '../../core/services/book.service';
-import { Book } from '../../core/models';
+import { AuthService } from '../../core/services/auth.service';
+import { ApiService } from '../../core/services/api.service';
+import { Book, User } from '../../core/models';
 import { SpinnerComponent } from '../../shared/components/spinner.component';
 import { ToastComponent } from '../../shared/components/toast.component';
 import { BookCardComponent } from './book-card.component';
@@ -17,10 +19,11 @@ import { UploadModalComponent } from './upload-modal.component';
   host: { class: 'flex flex-col flex-1 min-h-0' },
 })
 export class LibraryComponent implements OnInit {
-  books     = signal<Book[]>([]);
-  total     = signal(0);
-  loading   = signal(true);
+  books      = signal<Book[]>([]);
+  total      = signal(0);
+  loading    = signal(true);
   showUpload = signal(false);
+  sidebarOpen = signal(this.auth.currentUser()?.settings?.librarySidebarOpen ?? true);
 
   searchQuery = '';
   activeTag   = '';
@@ -59,7 +62,25 @@ export class LibraryComponent implements OnInit {
 
   private search$ = new Subject<string>();
 
-  constructor(private bookService: BookService, private router: Router) {}
+  constructor(
+    private bookService: BookService,
+    private router: Router,
+    private auth: AuthService,
+    private api: ApiService,
+  ) {}
+
+  toggleSidebar(): void {
+    const next = !this.sidebarOpen();
+    this.sidebarOpen.set(next);
+    const user = this.auth.currentUser();
+    if (!user) return;
+    const updated: User = { ...user, settings: { ...user.settings, librarySidebarOpen: next } };
+    this.auth.updateUser(updated);
+    this.api.patch<User>('/users/me/settings', updated.settings).subscribe({
+      next: saved => this.auth.updateUser(saved),
+      error: () => {},
+    });
+  }
 
   ngOnInit(): void {
     this.loadBooks();

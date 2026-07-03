@@ -52,6 +52,11 @@ export class AuthService {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   }
 
+  updateUser(user: User): void {
+    localStorage.setItem('readr_user', JSON.stringify(user));
+    this._currentUser.set(user);
+  }
+
   private persistSession(res: AuthResponse): void {
     localStorage.setItem(ACCESS_TOKEN_KEY, res.tokens.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, res.tokens.refreshToken);
