@@ -5,7 +5,7 @@
     <a routerLink="/library" routerLinkActive="bg-slate-700 text-white" class="btn-ghost text-sm">
       Library
     </a>
-    <a routerLink="/collections" routerLinkActive="bg-slate-700 text-white" class="btn-ghost text-sm">
+    <a *appFeatureFlag="'collections'" routerLink="/collections" routerLinkActive="bg-slate-700 text-white" class="btn-ghost text-sm">
       Collections
     </a>
   </div>

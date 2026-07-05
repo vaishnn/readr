@@ -42,6 +42,14 @@ frontend/
   angular.json             — proxyConfig, pdfjs worker asset
 ```
 
+## Folder-level Context Files
+
+Every directory worked on must have a `claude.md` file describing the files and responsibilities of that folder. Rules:
+- **Create** `claude.md` in any folder when first working in it.
+- **Update** `claude.md` immediately whenever a file in that folder is created, deleted, or significantly changed — keep it current, not historical.
+- **Content**: list each file, its purpose, key exports/types/routes, and any non-obvious constraints. One entry per file, concise.
+- **Goal**: Claude should be able to understand a folder's contents from `claude.md` alone, without re-reading every source file.
+
 ## Common Gotchas
 - Go nil slices marshal to JSON `null` — always use `make([]T, 0)`.
 - Docker named volume `frontend_node_modules` prevents stale packages after rebuild.

@@ -3,9 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { BookService } from '../../core/services/book.service';
-import { AuthService } from '../../core/services/auth.service';
-import { ApiService } from '../../core/services/api.service';
-import { Book, User } from '../../core/models';
+import { Book } from '../../core/models';
 import { SpinnerComponent } from '../../shared/components/spinner.component';
 import { ToastComponent } from '../../shared/components/toast.component';
 import { BookCardComponent } from './book-card.component';
@@ -23,27 +21,13 @@ export class LibraryComponent implements OnInit {
   total      = signal(0);
   loading    = signal(true);
   showUpload = signal(false);
-  sidebarOpen = signal(this.auth.currentUser()?.settings?.librarySidebarOpen ?? true);
 
   searchQuery = '';
   activeTag   = '';
   page        = 1;
   readonly limit = 24;
 
-  // Derived views
-  recentBooks  = computed(() => this.books().slice(0, 8));
-  sidebarBooks = computed(() => this.books().slice(0, 6));
-
-  topAuthors = computed(() => {
-    const map = new Map<string, number>();
-    for (const book of this.books()) {
-      if (book.author) map.set(book.author, (map.get(book.author) ?? 0) + 1);
-    }
-    return [...map.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map(([name, count]) => ({ name, count, initial: name[0]?.toUpperCase() ?? '?' }));
-  });
+  recentBooks = computed(() => this.books().slice(0, 8));
 
   tagCounts = computed(() => {
     const map = new Map<string, number>();
@@ -65,22 +49,7 @@ export class LibraryComponent implements OnInit {
   constructor(
     private bookService: BookService,
     private router: Router,
-    private auth: AuthService,
-    private api: ApiService,
   ) {}
-
-  toggleSidebar(): void {
-    const next = !this.sidebarOpen();
-    this.sidebarOpen.set(next);
-    const user = this.auth.currentUser();
-    if (!user) return;
-    const updated: User = { ...user, settings: { ...user.settings, librarySidebarOpen: next } };
-    this.auth.updateUser(updated);
-    this.api.patch<User>('/users/me/settings', updated.settings).subscribe({
-      next: saved => this.auth.updateUser(saved),
-      error: () => {},
-    });
-  }
 
   ngOnInit(): void {
     this.loadBooks();
@@ -93,7 +62,7 @@ export class LibraryComponent implements OnInit {
 
   loadBooks(): void {
     this.loading.set(true);
-    this.bookService.list({ page: this.page, limit: this.limit, search: this.searchQuery, tag: this.activeTag })
+    this.bookService.list({ page: this.page, limit: this.limit, search: this.searchQuery, tag: this.activeTag, ownerOnly: true })
       .subscribe({
         next: res => {
           this.books.set(res.books ?? []);
@@ -114,13 +83,6 @@ export class LibraryComponent implements OnInit {
     this.loadBooks();
   }
 
-  filterByAuthor(author: string): void {
-    this.searchQuery = author;
-    this.activeTag = '';
-    this.page = 1;
-    this.search$.next(author);
-  }
-
   clearFilters(): void {
     this.activeTag = '';
     this.searchQuery = '';
@@ -135,6 +97,10 @@ export class LibraryComponent implements OnInit {
   onBookDeleted(id: string): void {
     this.books.update(books => books.filter(b => b.id !== id));
     this.total.update(t => t - 1);
+  }
+
+  onBookUpdated(updated: Book): void {
+    this.books.update(books => books.map(b => b.id === updated.id ? updated : b));
   }
 
   onUploaded(book: Book): void {

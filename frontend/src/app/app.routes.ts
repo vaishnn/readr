@@ -33,6 +33,11 @@ export const routes: Routes = [
           import('./features/library/library.component').then(m => m.LibraryComponent),
       },
       {
+        path: 'global',
+        loadComponent: () =>
+          import('./features/global/global.component').then(m => m.GlobalComponent),
+      },
+      {
         path: 'collections',
         loadComponent: () =>
           import('./features/collections/collections.component').then(m => m.CollectionsComponent),

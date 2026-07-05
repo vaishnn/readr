@@ -1,11 +1,13 @@
 import { Component, computed } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { FeatureFlagDirective } from '../../core/feature-flags';
+import { PopularBooksComponent } from './popular-books.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FeatureFlagDirective, PopularBooksComponent],
   templateUrl: './shell.component.html',
 })
 export class ShellComponent {

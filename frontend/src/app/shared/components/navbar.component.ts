@@ -1,11 +1,12 @@
 import { Component, computed } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { FeatureFlagDirective } from '../../core/feature-flags';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, FeatureFlagDirective],
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent {

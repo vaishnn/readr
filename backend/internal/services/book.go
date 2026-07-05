@@ -28,10 +28,11 @@ var (
 var supportedFormats = map[string]bool{"pdf": true, "epub": true, "cbz": true}
 
 type BookListParams struct {
-	Page   int
-	Limit  int
-	Search string
-	Tag    string
+	Page      int
+	Limit     int
+	Search    string
+	Tag       string
+	OwnerOnly bool
 }
 
 type BookService struct {
@@ -51,13 +52,17 @@ func (s *BookService) List(ctx context.Context, userID primitive.ObjectID, p Boo
 		p.Page = 1
 	}
 
-	// A user can see: books they own, books shared with them, and all public books.
-	filter := bson.M{
-		"$or": bson.A{
-			bson.M{"owner_id": userID},
-			bson.M{"allowed_user_ids": userID},
-			bson.M{"is_private": false},
-		},
+	var filter bson.M
+	if p.OwnerOnly {
+		filter = bson.M{"owner_id": userID}
+	} else {
+		filter = bson.M{
+			"$or": bson.A{
+				bson.M{"owner_id": userID},
+				bson.M{"allowed_user_ids": userID},
+				bson.M{"is_private": false},
+			},
+		}
 	}
 
 	if p.Search != "" {
@@ -92,7 +97,7 @@ func (s *BookService) List(ctx context.Context, userID primitive.ObjectID, p Boo
 	return books, total, nil
 }
 
-func (s *BookService) Upload(ctx context.Context, userID primitive.ObjectID, filename string, file io.Reader, fileSize int64, coverReader io.Reader, coverSize int64, meta models.BookMetadata) (*models.Book, error) {
+func (s *BookService) Upload(ctx context.Context, userID primitive.ObjectID, filename, title, author string, tags []string, file io.Reader, fileSize int64, coverReader io.Reader, coverSize int64, meta models.BookMetadata) (*models.Book, error) {
 	ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(filename), "."))
 	if !supportedFormats[ext] {
 		return nil, ErrUnsupportedFmt
@@ -119,18 +124,20 @@ func (s *BookService) Upload(ctx context.Context, userID primitive.ObjectID, fil
 		}
 	}
 
-	title := strings.TrimSuffix(filename, filepath.Ext(filename))
+	if title == "" {
+		title = strings.TrimSuffix(filename, filepath.Ext(filename))
+	}
 
 	book := &models.Book{
 		ID:             bookID,
 		OwnerID:        userID,
 		Title:          title,
-		Author:         meta.Publisher,
+		Author:         author,
 		Format:         ext,
 		FileKey:        fileKey,
 		CoverKey:       coverKey,
 		Metadata:       meta,
-		Tags:           []string{},
+		Tags:           tags,
 		IsPrivate:      false,
 		AllowedUserIDs: []primitive.ObjectID{},
 		UploadedAt:     time.Now(),
@@ -171,6 +178,37 @@ func (s *BookService) Delete(ctx context.Context, userID, bookID primitive.Objec
 
 	_, err = s.db.Books().DeleteOne(ctx, bson.M{"_id": bookID})
 	return err
+}
+
+func (s *BookService) Update(ctx context.Context, userID, bookID primitive.ObjectID, title, author string, tags []string, meta models.BookMetadata) (*models.Book, error) {
+	book, err := s.findBook(ctx, bookID)
+	if err != nil {
+		return nil, err
+	}
+	if !book.IsOwnedBy(userID) {
+		return nil, ErrNotOwner
+	}
+	if tags == nil {
+		tags = []string{}
+	}
+	_, err = s.db.Books().UpdateOne(ctx,
+		bson.M{"_id": bookID},
+		bson.M{"$set": bson.M{
+			"title":    title,
+			"author":   author,
+			"tags":     tags,
+			"metadata": meta,
+		}},
+	)
+	if err != nil {
+		return nil, err
+	}
+	book.Title = title
+	book.Author = author
+	book.Tags = tags
+	book.Metadata = meta
+	s.populateCoverURLs(ctx, []models.Book{*book})
+	return book, nil
 }
 
 // Stream returns a raw reader for the book file streamed through the backend.

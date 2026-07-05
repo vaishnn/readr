@@ -12,6 +12,8 @@ type FeatureFlags struct {
 	Highlights    bool // FEATURE_HIGHLIGHTS     — text highlighting & notes (default: on)
 	Registration  bool // FEATURE_REGISTRATION   — new user self-registration (default: on)
 	SocialSharing bool // FEATURE_SOCIAL_SHARING — shareable book links
+	Global        bool // FEATURE_GLOBAL        — browse all public books
+	PopularBooks  bool // FEATURE_POPULAR_BOOKS — popular books sidebar
 }
 
 // Config holds all runtime configuration loaded from environment variables.
@@ -69,6 +71,8 @@ func Load() *Config {
 			Highlights:    getEnv("FEATURE_HIGHLIGHTS", "true") == "true",
 			Registration:  getEnv("FEATURE_REGISTRATION", "true") == "true",
 			SocialSharing: getEnv("FEATURE_SOCIAL_SHARING", "false") == "true",
+			Global:        getEnv("FEATURE_GLOBAL", "false") == "true",
+			PopularBooks:  getEnv("FEATURE_POPULAR_BOOKS", "false") == "true",
 		},
 	}
 }

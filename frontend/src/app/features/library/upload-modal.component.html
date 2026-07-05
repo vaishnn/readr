@@ -1,7 +1,7 @@
 <!-- Backdrop -->
 <div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="close.emit()">
 
-  <div class="card w-full max-w-md p-6 shadow-2xl" (click)="$event.stopPropagation()">
+  <div class="card w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
 
     <div class="flex items-center justify-between mb-5">
       <h2 class="text-lg font-semibold text-white">Upload a book</h2>
@@ -40,6 +40,7 @@
         @if (bookFile()) {
           <p class="text-white text-sm font-medium truncate w-full">{{ bookFile()!.name }}</p>
           <p class="text-slate-400 text-xs mt-1">{{ formatSize(bookFile()!.size) }}</p>
+          <p class="text-slate-500 text-xs mt-2">Click to change</p>
         } @else {
           <svg class="w-8 h-8 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -54,12 +55,60 @@
 
     <input #bookInput type="file" accept=".pdf,.epub,.cbz" class="hidden" (change)="onBookFileSelect($event)" />
 
+    <!-- Details form — shown once a file is picked -->
+    @if (bookFile()) {
+      <div class="mt-5 space-y-3">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+          Book details
+          @if (generatingThumb()) {
+            <span class="text-slate-600 font-normal normal-case tracking-normal ml-1">— detecting from PDF…</span>
+          }
+        </p>
+
+        <!-- Title (required) -->
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Title <span class="text-red-400">*</span></label>
+          <input type="text" class="input w-full" [(ngModel)]="bookTitle" placeholder="Book title" />
+        </div>
+
+        <!-- Author + Language row -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Author</label>
+            <input type="text" class="input w-full" [(ngModel)]="authorName" placeholder="e.g. Frank Herbert" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Language</label>
+            <input type="text" class="input w-full" [(ngModel)]="language" placeholder="e.g. English" />
+          </div>
+        </div>
+
+        <!-- Tags + Year row -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Tags <span class="text-slate-600">(comma-separated)</span></label>
+            <input type="text" class="input w-full" [(ngModel)]="tagsInput" placeholder="e.g. sci-fi, classic" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Year</label>
+            <input type="number" class="input w-full" [(ngModel)]="year" placeholder="e.g. 1965" />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Description</label>
+          <textarea class="input w-full resize-none" rows="2" [(ngModel)]="description" placeholder="Short summary…"></textarea>
+        </div>
+      </div>
+    }
+
     <!-- Actions -->
     <div class="flex justify-end gap-3 mt-5">
       <button class="btn-ghost" (click)="close.emit()">Cancel</button>
       <button
         class="btn-primary flex items-center gap-2"
-        [disabled]="!bookFile() || uploading() || generatingThumb()"
+        [disabled]="!bookFile() || !bookTitle.trim() || uploading() || generatingThumb()"
         (click)="upload()"
       >
         @if (uploading()) { <app-spinner size="sm" /> }

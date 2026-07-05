@@ -117,6 +117,7 @@ func main() {
 
 				r.Route("/{bookID}", func(r chi.Router) {
 					r.Get("/", bookH.Get)
+					r.Patch("/", bookH.Update)
 					r.Delete("/", bookH.Delete)
 					r.Get("/stream", bookH.Stream)
 					r.Patch("/access", bookH.UpdateAccess)

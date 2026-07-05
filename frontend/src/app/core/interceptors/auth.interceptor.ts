@@ -14,7 +14,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   return next(authedReq).pipe(
     catchError((err: HttpErrorResponse) => {
       // On 401, attempt a single token refresh then retry the original request.
-      if (err.status === 401 && auth.getRefreshToken()) {
+      if (err.status === 401 && auth.getRefreshToken() && !req.url.includes('/auth/refresh')) {
         return auth.refresh().pipe(
           switchMap(tokens => next(attachToken(req, tokens.accessToken))),
           catchError(refreshErr => {

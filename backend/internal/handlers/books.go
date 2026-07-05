@@ -31,10 +31,11 @@ func (h *BookHandler) List(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
 	books, total, err := h.svc.List(r.Context(), userID, services.BookListParams{
-		Page:   page,
-		Limit:  limit,
-		Search: r.URL.Query().Get("search"),
-		Tag:    r.URL.Query().Get("tag"),
+		Page:      page,
+		Limit:     limit,
+		Search:    r.URL.Query().Get("search"),
+		Tag:       r.URL.Query().Get("tag"),
+		OwnerOnly: r.URL.Query().Get("ownerOnly") == "true",
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to fetch books")
@@ -71,7 +72,15 @@ func (h *BookHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal([]byte(raw), &meta)
 	}
 
-	book, err := h.svc.Upload(r.Context(), userID, header.Filename, file, header.Size, coverReader, coverSize, meta)
+	title  := r.FormValue("title")
+	author := r.FormValue("author")
+
+	tags := make([]string, 0)
+	if raw := r.FormValue("tags"); raw != "" {
+		json.Unmarshal([]byte(raw), &tags)
+	}
+
+	book, err := h.svc.Upload(r.Context(), userID, header.Filename, title, author, tags, file, header.Size, coverReader, coverSize, meta)
 	if errors.Is(err, services.ErrUnsupportedFmt) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -109,6 +118,44 @@ func (h *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	writeJSON(w, http.StatusOK, book)
+}
+
+func (h *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
+	userID, ok := mustUserID(w, r)
+	if !ok {
+		return
+	}
+	bookID, err := parseObjectID(chi.URLParam(r, "bookID"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid book id")
+		return
+	}
+
+	var body struct {
+		Title    string              `json:"title"`
+		Author   string              `json:"author"`
+		Tags     []string            `json:"tags"`
+		Metadata models.BookMetadata `json:"metadata"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	book, err := h.svc.Update(r.Context(), userID, bookID, body.Title, body.Author, body.Tags, body.Metadata)
+	if errors.Is(err, services.ErrNotOwner) {
+		writeError(w, http.StatusForbidden, err.Error())
+		return
+	}
+	if errors.Is(err, services.ErrBookNotFound) {
+		writeError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "update failed")
+		return
+	}
 	writeJSON(w, http.StatusOK, book)
 }
 

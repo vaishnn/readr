@@ -39,6 +39,8 @@ func (s *FeatureFlagService) Seed(ctx context.Context, cfg config.FeatureFlags) 
 		{"highlights", "Text highlighting and inline notes inside the reader.", cfg.Highlights},
 		{"registration", "Allow new users to self-register (disable for single-user instances).", cfg.Registration},
 		{"social-sharing", "Generate shareable links for books and collections.", cfg.SocialSharing},
+		{"global", "Browse all public books uploaded by any user.", cfg.Global},
+		{"popular-books", "Popular Books sidebar shown on every main tab.", cfg.PopularBooks},
 	}
 
 	coll := s.db.FeatureFlags()
